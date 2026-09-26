@@ -1,0 +1,56 @@
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: fraud-detection-workbench
+  namespace: fraud-detection-mlops
+
+  annotations:
+    notebooks.opendatahub.io/inject-auth: "true"
+    notebooks.opendatahub.io/last-image-selection: tensorflow:2025.2
+
+    opendatahub.io/connections: fraud-detection-mlops/my-storage
+
+    opendatahub.io/hardware-profile-name: gtx1660super-gpu
+    opendatahub.io/hardware-profile-namespace: redhat-ods-applications
+
+    opendatahub.io/image-display-name: Jupyter | TensorFlow | CUDA | Python 3.12
+
+    openshift.io/display-name: fraud-detection-workbench
+
+  labels:
+    app: fraud-detection-workbench
+    opendatahub.io/dashboard: "true"
+
+spec:
+  template:
+    spec:
+      containers:
+        - name: fraud-detection-workbench
+
+          image: registry.redhat.io/rhoai/odh-workbench-jupyter-tensorflow-cuda-py312-rhel9@sha256:118431b70712622eebc503820f1fbefea0f0b1932f12f20f2f05330025b353ce
+
+          envFrom:
+            - secretRef:
+                name: my-storage
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: 6Gi
+              nvidia.com/gpu: "1"
+
+            limits:
+              cpu: "4"
+              memory: 20Gi
+              nvidia.com/gpu: "1"
+
+          volumeMounts:
+            - name: fraud-detection-workbench-storage
+              mountPath: /opt/app-root/src/
+
+      serviceAccountName: fraud-detection-workbench
+
+      volumes:
+        - name: fraud-detection-workbench-storage
+          persistentVolumeClaim:
+            claimName: fraud-detection-workbench-storage
