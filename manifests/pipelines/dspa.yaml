@@ -1,0 +1,49 @@
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
+kind: DataSciencePipelinesApplication
+metadata:
+  name: dspa
+  namespace: fraud-detection-mlops
+
+spec:
+  dspVersion: v2
+
+  apiServer:
+    artifactSignedURLExpirySeconds: 60
+    cacheEnabled: true
+    deploy: true
+    enableOauth: true
+    enableSamplePipeline: false
+    pipelineStore: kubernetes
+
+  database:
+    disableHealthCheck: false
+    mariaDB:
+      deploy: true
+      pipelineDBName: mlpipeline
+      pvcSize: 10Gi
+      username: mlpipeline
+
+  objectStorage:
+    disableHealthCheck: false
+    enableExternalRoute: false
+
+    externalStorage:
+      bucket: fraud-pipeline-artifacts
+      host: minio.aistor.svc.cluster.local:9000
+      region: us-east-1
+      scheme: https
+
+      s3CredentialsSecret:
+        secretName: dashboard-dspa-secret
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY
+
+  persistenceAgent:
+    deploy: true
+    numWorkers: 2
+
+  podToPodTLS: true
+
+  scheduledWorkflow:
+    cronScheduleTimezone: UTC
+    deploy: true
