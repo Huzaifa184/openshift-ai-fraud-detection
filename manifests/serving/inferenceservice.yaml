@@ -1,0 +1,48 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: fraude-detection
+  namespace: fraud-detection-mlops
+  annotations:
+    modelFormat: onnx
+    opendatahub.io/connection-path: models/fraud
+    opendatahub.io/connections: my-storage
+    opendatahub.io/hardware-profile-name: gtx1660super-gpu
+    opendatahub.io/hardware-profile-namespace: redhat-ods-applications
+    opendatahub.io/model-type: predictive
+    security.opendatahub.io/enable-auth: "false"
+    serving.kserve.io/deploymentMode: Standard
+  labels:
+    networking.kserve.io/visibility: exposed
+    opendatahub.io/dashboard: "true"
+
+spec:
+  predictor:
+    automountServiceAccountToken: false
+
+    minReplicas: 1
+    maxReplicas: 1
+
+    model:
+      modelFormat:
+        name: onnx
+        version: "1"
+
+      runtime: fraude-detection
+
+      storage:
+        key: my-storage
+        path: models/fraud
+
+      resources:
+        requests:
+          cpu: "2"
+          memory: 6Gi
+          nvidia.com/gpu: "1"
+        limits:
+          cpu: "2"
+          memory: 6Gi
+          nvidia.com/gpu: "1"
+
+    serviceAccountName: my-storage-sa
+    timeout: 30
